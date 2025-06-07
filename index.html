@@ -95,7 +95,6 @@
       display: none;
     }
 
-    /* Card styles */
     .card-container {
       display: flex;
       justify-content: center;
@@ -168,9 +167,55 @@
     @keyframes blink {
       50% { border-color: transparent; }
     }
+
+    /* Admin buttons */
+    #adminToggleBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #00ffff;
+      color: black;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    #adminLoginBox {
+      position: fixed;
+      top: 50px;
+      left: 10px;
+      display: none;
+      z-index: 1000;
+    }
+
+    #exitAdminBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #ff4c4c;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
+  <!-- Admin Buttons -->
+  <button id="adminToggleBtn">Ankit512</button>
+  <div id="adminLoginBox">
+    <input type="password" id="adminPasscode" placeholder="Enter passcode..." />
+    <button onclick="checkAdminPasscode()">Submit</button>
+  </div>
+  <button id="exitAdminBtn" onclick="exitAdminMode()">Exit Admin</button>
+
   <div class="container">
     <header>
       <h1 class="glitch">Ankit • Gamer & YouTuber 🎮</h1>
@@ -236,10 +281,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Flip card + reset animation
+    // Card flip animation
     function flipCard(card) {
       card.classList.toggle("flipped");
-
       const text = card.querySelector(".typing-text");
       if (text) {
         text.style.animation = "none";
@@ -248,16 +292,17 @@
       }
     }
 
-    
+    // Firebase config
     const firebaseConfig = {
-  apiKey: "AIzaSyC9t2ZPEmc0N4hUfQ5Cev2YbR5Zy0LeYK4",
-  authDomain: "website-e4eb6.firebaseapp.com",
-  projectId: "website-e4eb6",
-  storageBucket: "website-e4eb6.firebasestorage.app",
-  messagingSenderId: "393446567457",
-  appId: "1:393446567457:web:46867a52835dcac225bd60",
-  measurementId: "G-GDX8E96Y0V"
-};
+      apiKey: "AIzaSyC9t2ZPEmc0N4hUfQ5Cev2YbR5Zy0LeYK4",
+      authDomain: "website-e4eb6.firebaseapp.com",
+      projectId: "website-e4eb6",
+      storageBucket: "website-e4eb6.appspot.com",
+      messagingSenderId: "393446567457",
+      appId: "1:393446567457:web:46867a52835dcac225bd60",
+      measurementId: "G-GDX8E96Y0V"
+    };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -310,14 +355,38 @@
       }
     }
 
+    // Admin mode logic
     window.adminMode = false;
-    window.onload = function () {
-      const passcode = prompt('Enter passcode for admin mode (leave blank for user mode):');
-      if (passcode === 'ankit512') {
+
+    document.getElementById('adminToggleBtn').addEventListener('click', () => {
+      document.getElementById('adminLoginBox').style.display = 'block';
+    });
+
+    function checkAdminPasscode() {
+      const entered = document.getElementById('adminPasscode').value;
+      if (entered === 'ankit512') {
         window.adminMode = true;
-        alert('Admin mode enabled: You can now delete comments.');
+        alert('✅ Admin mode enabled: You can now delete comments.');
+        document.getElementById('exitAdminBtn').style.display = 'inline-block';
+        document.getElementById('adminLoginBox').style.display = 'none';
+        refreshComments();
+      } else {
+        alert('❌ Incorrect passcode.');
       }
-    };
+    }
+
+    function exitAdminMode() {
+      window.adminMode = false;
+      document.getElementById('exitAdminBtn').style.display = 'none';
+      refreshComments();
+    }
+
+    function refreshComments() {
+      db.collection("comments").orderBy('timestamp').get().then(snapshot => {
+        commentsList.innerHTML = '';
+        snapshot.forEach(doc => renderComment(doc));
+      });
+    }
   </script>
 </body>
 </html>
